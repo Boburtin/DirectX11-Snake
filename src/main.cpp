@@ -1,21 +1,23 @@
 #include <windows.h>
 
-#include "constants.hpp"
-#include "engine.hpp"
-#include "logic.hpp"
+#include "CONSTANTS.hpp"
+#include "Logic.hpp"
+#include "Engine.hpp"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-    auto *gameContextPtr =
-        reinterpret_cast<GameContext<std::uint16_t, TILES> *>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+    using PContext = GameContext<std::uint16_t, TILES> *;
+
+    auto *contextPtr = reinterpret_cast<PContext>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
 
     switch (msg)
     {
     case WM_NCCREATE: {
-        auto *createStruct = reinterpret_cast<CREATESTRUCTW *>(lparam);
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(createStruct->lpCreateParams));
+        auto *csPtr = reinterpret_cast<CREATESTRUCTW *>(lparam);
+        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(csPtr->lpCreateParams));
         return TRUE;
     }
+
     case WM_CLOSE: {
         if (MessageBoxA(hwnd, "Are you sure you want to quit?", "Confirm Exit", MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
@@ -27,30 +29,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
         }
         break;
     }
+
     case WM_KEYUP:
-        if (gameContextPtr)
+        if (contextPtr)
         {
-            gameContextPtr->keys.reset(wparam);
+            contextPtr->keys.reset(wparam);
             return 0;
         }
         break;
+
     case WM_KEYDOWN:
         if (wparam == VK_ESCAPE)
         {
             PostQuitMessage(0);
             return 0;
         }
-        if (gameContextPtr)
+        if (contextPtr)
         {
-            gameContextPtr->keys.set(wparam);
+            contextPtr->keys.set(wparam);
             return 0;
         }
         break;
+
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
     }
-
     return DefWindowProcW(hwnd, msg, wparam, lparam);
 }
 

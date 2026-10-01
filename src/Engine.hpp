@@ -1,6 +1,6 @@
 #pragma once
 
-#include "constants.hpp"
+#include "CONSTANTS.hpp"
 
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
@@ -19,6 +19,8 @@ class Graphics2DEngine
     ComPtr<IDXGISwapChain1> swapChain;
     // part of the output group, last stage
     ComPtr<ID3D11RenderTargetView> renderTargetView;
+    // object buffer to perform Map/Unmap, writing to GPU memory
+    ComPtr<ID3D11Buffer> constantBuffer;
     // compiled shader bytes
     ComPtr<ID3D11PixelShader> pixelShader;
     ComPtr<ID3D11VertexShader> vertexShader;
