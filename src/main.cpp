@@ -13,10 +13,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
                       .style = (CS_HREDRAW | CS_VREDRAW),
                       .lpfnWndProc = &WndProc,
                       .hInstance = hInstance,
-                      .hIcon = LoadIcon(0, IDI_APPLICATION),
-                      .hCursor = LoadCursor(0, IDC_ARROW),
+                      .hIcon = LoadIconW(0, IDI_APPLICATION),
+                      .hCursor = LoadCursorW(0, IDC_ARROW),
                       .lpszClassName = L"App",
-                      .hIconSm = LoadIcon(0, IDI_APPLICATION)};
+                      .hIconSm = LoadIconW(0, IDI_APPLICATION)};
     if (!RegisterClassExW(&wc))
         return GetLastError();
     RECT rect = {0, 0, WIDTH, HEIGHT};
