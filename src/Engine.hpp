@@ -1,14 +1,10 @@
 #pragma once
 
+#include "constants.hpp"
+
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
 #include <wrl.h>
-
-#define COLS 32
-#define ROWS 32
-#define CELL_PX 20
-#define WIDTH (COLS * CELL_PX)
-#define HEIGHT (ROWS * CELL_PX)
 
 class Graphics2DEngine
 {
@@ -69,8 +65,8 @@ class Graphics2DEngine
                 dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), reinterpret_cast<void **>(dxgiFactory.GetAddressOf()))))
             return E_FAIL;
 
-        DXGI_SWAP_CHAIN_DESC1 sDesc = {.Width = WIDTH,
-                                       .Height = HEIGHT,
+        DXGI_SWAP_CHAIN_DESC1 sDesc = {.Width = static_cast<UINT>(WINDOW_WIDTH),
+                                       .Height = static_cast<UINT>(WINDOW_HEIGHT),
                                        .Format = DXGI_FORMAT_B8G8R8A8_UNORM,
                                        .SampleDesc = {.Count = 1, .Quality = 0},
                                        .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
