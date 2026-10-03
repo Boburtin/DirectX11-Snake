@@ -1,8 +1,8 @@
 #include <windows.h>
 
-#include "CONSTANTS.hpp"
-#include "Logic.hpp"
+#include "constants.inc"
 #include "Engine.hpp"
+#include "Logic.hpp"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
@@ -83,10 +83,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
         return GetLastError();
 
     Graphics2DEngine engine;
-    if (FAILED(engine.EngineInit(hwnd)))
+    if (HRESULT hr = engine.EngineInit(hwnd); FAILED(hr))
     {
         MessageBoxA(nullptr, "Failed to initialize Graphics2DEngine", "Fatal Error", MB_OK);
-        return EXIT_FAILURE;
+        return static_cast<int>(hr);
     }
 
     MSG msg = {0};

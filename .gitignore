@@ -2,4 +2,3 @@ build/
 *.cso
 .clang-format
 .cache/
-*.hlsl

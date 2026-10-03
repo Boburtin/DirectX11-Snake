@@ -5,7 +5,12 @@
 #include <memory>
 #include <stdexcept>
 
-template <class T, std::size_t N> class ring_buf
+template <auto V>
+concept LOGBASE2_N_IS_NATURAL_NUM = (V > 0) && ((V & (V - 1)) == 0);
+
+template <class T, std::size_t N>
+    requires LOGBASE2_N_IS_NATURAL_NUM<N>
+class RingBuffer
 {
   private:
     std::unique_ptr<T[]> data_;
@@ -14,20 +19,21 @@ template <class T, std::size_t N> class ring_buf
     std::size_t head_{};
 
   public:
-    ring_buf() : data_(std::make_unique<T[]>(N))
+    RingBuffer() : data_(std::make_unique<T[]>(N))
     {
     }
 
-    ring_buf(ring_buf &) = delete;
-    ring_buf &operator=(const ring_buf &) = delete;
+    // TODO: allow copy constructor and copy assignment, don't depend on unique_ptr
+    RingBuffer(const RingBuffer &) = delete;
+    RingBuffer &operator=(const RingBuffer &) = delete;
 
-    ring_buf(ring_buf &&other) noexcept
-        : data_(std::move(other.data_)), size_(std::exchange(other.size_, 0)), tail_(std::exchange(other.tail_, 0)),
-          head_(std::exchange(other.head_, 0))
+    RingBuffer(RingBuffer &&other) noexcept
+        : data_(std::move(other.data_)), size_(std::exchange(other.size_, 0)),
+          tail_(std::exchange(other.tail_, 0)), head_(std::exchange(other.head_, 0))
     {
     }
 
-    ring_buf &operator=(ring_buf &&other) noexcept
+    RingBuffer &operator=(RingBuffer &&other) noexcept
     {
         if (this != &other)
         {
@@ -39,7 +45,7 @@ template <class T, std::size_t N> class ring_buf
         return *this;
     }
 
-    ~ring_buf() = default;
+    ~RingBuffer() = default;
 
     bool is_empty() const noexcept
     {
@@ -51,14 +57,19 @@ template <class T, std::size_t N> class ring_buf
         return size_ == N;
     }
 
-    bool length() const noexcept
+    std::size_t length() const noexcept
     {
         return size_;
     }
 
-    bool size() const noexcept
+    std::size_t size() const noexcept
     {
         return size_;
+    }
+
+    std::size_t cap() const noexcept
+    {
+        return N;
     }
 
     void push(const T &value)
@@ -66,7 +77,10 @@ template <class T, std::size_t N> class ring_buf
         if (is_full())
             throw std::runtime_error("Buffer is full");
         data_[tail_] = value;
-        tail_ = (tail_ + 1) % N;
+        if constexpr (LOGBASE2_N_IS_NATURAL_NUM<N>)
+            tail_ = (tail_ + 1) & (N - 1);
+        else
+            tail_ = (tail_ + 1) % N;
         ++size_;
     }
 
@@ -74,20 +88,29 @@ template <class T, std::size_t N> class ring_buf
     {
         if (is_empty())
             throw std::runtime_error("Buffer is empty");
-        head_ = (head_ + 1) % N;
+        if constexpr (LOGBASE2_N_IS_NATURAL_NUM<N>)
+            head_ = (head_ + 1) & (N - 1);
+        else
+            head_ = (head_ + 1) % N;
         --size_;
     }
 
     const T &operator[](std::size_t n) const noexcept
     {
-        return data_[(head_ + n) % N];
+        if constexpr (LOGBASE2_N_IS_NATURAL_NUM<N>)
+            return data_[(head_ + n) & (N - 1)];
+        else
+            return data_[(head_ + n) % N];
     }
 
     const T &at(std::size_t n) const
     {
         if (n >= size_)
             throw std::out_of_range("Invalid range");
-        return data_[(head_ + n) % N];
+        if constexpr (LOGBASE2_N_IS_NATURAL_NUM<N>)
+            return data_[(head_ + n) & (N - 1)];
+        else
+            return data_[(head_ + n) % N];
     }
 
     class iterator
@@ -100,23 +123,28 @@ template <class T, std::size_t N> class ring_buf
         using reference = T &;
 
       private:
-        ring_buf *const container_;
+        RingBuffer *const container_;
         std::size_t virtual_index_;
 
       public:
-        iterator(ring_buf *container, std::size_t virtual_index) : container_(container), virtual_index_(virtual_index)
+        iterator(RingBuffer *container, std::size_t virtual_index)
+            : container_(container), virtual_index_(virtual_index)
         {
         }
 
         reference operator*() const
         {
-            std::size_t physical_index = (container_->head_ + virtual_index_) % N;
+            std::size_t physical_index;
+            if constexpr (LOGBASE2_N_IS_NATURAL_NUM<N>)
+                physical_index = (container_->head_ + virtual_index_) & (N - 1);
+            else
+                physical_index = (container_->head_ + virtual_index_) % N;
             return container_->data_[physical_index];
         }
 
         pointer operator->() const
         {
-            return &**this;
+            return &this->operator*();
         }
 
         iterator &operator++()

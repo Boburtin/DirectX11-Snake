@@ -1,6 +1,6 @@
 #pragma once
 // my headers
-#include "ring_buf.hpp"
+#include "RingBuffer.hpp"
 // std library
 #include <bitset>
 #include <cstddef>
@@ -10,8 +10,8 @@ typedef std::bitset<256> KeySet, *PKeySet;
 
 template <typename T, std::size_t N> struct Snake
 {
-    ring_buf<T, N> board{};
-
+    RingBuffer<T, N> board{};
+    std::size_t fdIndex{};
     Snake() = default;
 };
 
@@ -19,7 +19,6 @@ template <typename T, std::size_t N> struct GameContext
 {
     Snake<T, N> snake{};
     KeySet keys{};
-
     GameContext() = default;
 };
 

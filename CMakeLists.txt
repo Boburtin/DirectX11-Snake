@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(SnakeD3D LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -13,15 +13,14 @@ target_compile_definitions(SnakeD3D PRIVATE
     _UNICODE
 )
 
-if(MSVC)
-    target_link_options(SnakeD3D PRIVATE "/ENTRY:wWinMainCRTStartup")
-elseif(MINGW)
-    target_compile_options(SnakeD3D PRIVATE "-municode")
+if(MINGW)
     target_link_options(SnakeD3D PRIVATE "-municode")
+    find_package(directxmath CONFIG REQUIRED)
+    target_link_libraries(SnakeD3D PRIVATE Microsoft::DirectXMath)
 endif()
 
 target_sources(SnakeD3D PRIVATE
-    src/main.cpp
+    src/winmain.cpp
 )
 
 target_link_libraries(SnakeD3D PRIVATE
